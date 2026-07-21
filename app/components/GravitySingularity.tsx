@@ -89,8 +89,10 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
     const signalNodes = signalProfiles.map((profile, index) => ({
       profile,
       angle: index * 2.399963,
-      orbit: 0.29 + (index % 6) * 0.085,
-      speed: 0.0008 + (index % 5) * 0.00025,
+      radius: 0,
+      speed: 0.0016 + (index % 7) * 0.00055,
+      seed: index * 1.837 + 4.2,
+      wobble: 0.18 + (index % 6) * 0.052,
       x: 0,
       y: 0,
     }));
@@ -122,6 +124,9 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
       const count = width < 700 ? 260 : 520;
       const maxRadius = Math.min(width, height) * 0.48;
       particles = Array.from({ length: count }, (_, index) => createParticle(maxRadius, index));
+      signalNodes.forEach((node, index) => {
+        node.radius = maxRadius * (0.18 + ((index * 37) % 82) / 100);
+      });
       context.fillStyle = "#040407";
       context.fillRect(0, 0, width, height);
     };
@@ -219,15 +224,23 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
       context.shadowBlur = 0;
     };
 
-    const drawSignalNodes = (maxRadius: number) => {
+    const drawSignalNodes = (maxRadius: number, coreRadius: number, time: number, motionEnergy: number) => {
       context.save();
       context.textAlign = "center";
       context.font = "600 7px monospace";
       signalNodes.forEach((node, index) => {
-        if (!pointerInside) node.angle += node.speed * energy;
-        const radius = maxRadius * node.orbit;
-        node.x = centerX + Math.cos(node.angle) * radius;
-        node.y = centerY + Math.sin(node.angle) * radius * 0.58;
+        const pull = 1 + Math.max(0, 1 - node.radius / maxRadius) * 5.6;
+        node.angle += node.speed * motionEnergy * pull + burst * (0.018 + index % 4 * 0.002);
+        node.radius -= (0.028 + node.speed * 2.2) * motionEnergy;
+        if (node.radius < coreRadius * 1.25) {
+          node.radius = maxRadius * (0.82 + Math.random() * 0.22);
+          node.angle += Math.PI * (0.35 + Math.random());
+        }
+        const ripple = Math.sin(node.angle * 3 + node.seed + time * node.wobble) * (11 + node.radius * 0.035);
+        const orbitRadius = node.radius + ripple;
+        const tilt = 0.59 + Math.sin(node.seed) * 0.08;
+        node.x = centerX + Math.cos(node.angle) * orbitRadius + Math.sin(node.angle * 2.3 + node.seed) * 18;
+        node.y = centerY + Math.sin(node.angle) * orbitRadius * tilt + Math.cos(node.angle * 2.7 - node.seed) * 12;
         const active = index === hoveredSignal;
 
         context.globalCompositeOperation = "lighter";
@@ -308,7 +321,7 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
 
       drawRings(centerX, centerY, time, coreRadius);
       drawCore(centerX, centerY, coreRadius);
-      drawSignalNodes(maxRadius);
+      drawSignalNodes(maxRadius, coreRadius, time, motionEnergy);
       frame = window.requestAnimationFrame(render);
     };
 
