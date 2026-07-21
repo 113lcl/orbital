@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 type GravitySingularityProps = {
   collapsed: boolean;
@@ -18,10 +18,32 @@ type Particle = {
   previousY: number;
 };
 
+type SignalProfile = {
+  id: string;
+  name: string;
+  color: string;
+  temperature: string;
+  gravity: string;
+  orbit: string;
+  atmosphere: string;
+  status: string;
+};
+
+const signalProfiles: SignalProfile[] = [
+  { id: "S-01", name: "VANTA IX", color: "#6944ff", temperature: "−184 °C", gravity: "0.82 G", orbit: "112 DAYS", atmosphere: "GLASS VAPOR", status: "DORMANT" },
+  { id: "S-02", name: "LIME ECHO", color: "#c7ff2f", temperature: "+41 °C", gravity: "1.16 G", orbit: "029 DAYS", atmosphere: "NEON DUST", status: "CALLING" },
+  { id: "S-03", name: "NYX / 07", color: "#ff563d", temperature: "−62 °C", gravity: "2.04 G", orbit: "406 DAYS", atmosphere: "IRON MIST", status: "UNSTABLE" },
+  { id: "S-04", name: "PALE MIRROR", color: "#e9e7de", temperature: "−221 °C", gravity: "0.31 G", orbit: "∞ / OPEN", atmosphere: "NONE", status: "LISTENING" },
+  { id: "S-05", name: "ULTRA-13", color: "#a46cff", temperature: "+704 °C", gravity: "3.72 G", orbit: "008 HOURS", atmosphere: "PLASMA VEIL", status: "CRITICAL" },
+  { id: "S-06", name: "CYAN SLEEP", color: "#65ddff", temperature: "−109 °C", gravity: "0.67 G", orbit: "188 DAYS", atmosphere: "LIQUID SKY", status: "DREAMING" },
+  { id: "S-07", name: "EMBER ZERO", color: "#ff8a35", temperature: "+96 °C", gravity: "1.44 G", orbit: "054 DAYS", atmosphere: "CARBON RAIN", status: "AWAKE" },
+];
+
 export default function GravitySingularity({ collapsed }: GravitySingularityProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const collapsedRef = useRef(collapsed);
+  const [selectedSignal, setSelectedSignal] = useState<SignalProfile | null>(null);
 
   useEffect(() => {
     collapsedRef.current = collapsed;
@@ -44,7 +66,16 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
     let pointerInside = false;
     let burst = 0;
     let energy = 1;
+    let hoveredSignal = -1;
     const startedAt = performance.now();
+    const signalNodes = signalProfiles.map((profile, index) => ({
+      profile,
+      angle: (Math.PI * 2 * index) / signalProfiles.length + index * 0.31,
+      orbit: 0.38 + (index % 4) * 0.105,
+      speed: 0.0012 + (index % 3) * 0.0005,
+      x: 0,
+      y: 0,
+    }));
 
     const createParticle = (maxRadius: number, index: number): Particle => ({
       angle: Math.random() * Math.PI * 2,
@@ -90,10 +121,32 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
       pointerX = event.clientX - rect.left;
       pointerY = event.clientY - rect.top;
       pointerInside = true;
+      let nearest = -1;
+      let nearestDistance = 22;
+      signalNodes.forEach((node, index) => {
+        const distance = Math.hypot(pointerX - node.x, pointerY - node.y);
+        if (distance < nearestDistance) {
+          nearest = index;
+          nearestDistance = distance;
+        }
+      });
+      hoveredSignal = nearest;
+      mount.dataset.cursor = nearest >= 0 ? "OPEN" : "HOLD";
+      mount.classList.toggle("has-signal-hover", nearest >= 0);
     };
-    const pointerLeave = () => { pointerInside = false; };
+    const pointerLeave = () => {
+      pointerInside = false;
+      hoveredSignal = -1;
+      mount.dataset.cursor = "DISTORT";
+      mount.classList.remove("has-signal-hover");
+    };
     const pointerDown = (event: PointerEvent) => {
-      if (event.button === 0) pulse();
+      if (event.button !== 0 || (event.target instanceof Element && event.target.closest(".signal-card"))) return;
+      if (hoveredSignal >= 0) {
+        setSelectedSignal(signalNodes[hoveredSignal].profile);
+      } else {
+        pulse();
+      }
     };
     const keyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -148,14 +201,45 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
       context.shadowBlur = 0;
     };
 
+    const drawSignalNodes = (maxRadius: number) => {
+      context.save();
+      context.textAlign = "center";
+      context.font = "600 7px monospace";
+      signalNodes.forEach((node, index) => {
+        if (!pointerInside) node.angle += node.speed * energy;
+        const radius = maxRadius * node.orbit;
+        node.x = centerX + Math.cos(node.angle) * radius;
+        node.y = centerY + Math.sin(node.angle) * radius * 0.58;
+        const active = index === hoveredSignal;
+
+        context.globalCompositeOperation = "lighter";
+        context.strokeStyle = active ? "rgba(255,255,255,.9)" : `${node.profile.color}88`;
+        context.lineWidth = active ? 1.5 : 0.8;
+        context.beginPath();
+        context.arc(node.x, node.y, active ? 14 : 9, 0, Math.PI * 2);
+        context.stroke();
+        context.fillStyle = node.profile.color;
+        context.shadowColor = node.profile.color;
+        context.shadowBlur = active ? 28 : 14;
+        context.beginPath();
+        context.arc(node.x, node.y, active ? 5.5 : 3.8, 0, Math.PI * 2);
+        context.fill();
+        context.shadowBlur = 0;
+        context.globalCompositeOperation = "source-over";
+        context.fillStyle = active ? "rgba(240,239,231,.95)" : "rgba(156,154,170,.7)";
+        context.fillText(active ? node.profile.name : node.profile.id, node.x, node.y - (active ? 20 : 14));
+      });
+      context.restore();
+    };
+
     const render = (now: number) => {
       const time = (now - startedAt) / 1000;
       const desiredEnergy = collapsedRef.current ? 3.1 : 1;
       energy += (desiredEnergy - energy) * 0.035;
       const idleX = width * 0.52 + Math.sin(time * 0.31) * width * 0.035;
       const idleY = height * 0.51 + Math.cos(time * 0.24) * height * 0.028;
-      const desiredX = pointerInside ? pointerX : idleX;
-      const desiredY = pointerInside ? pointerY : idleY;
+      const desiredX = pointerInside ? centerX : idleX;
+      const desiredY = pointerInside ? centerY : idleY;
       centerX += (desiredX - centerX) * (pointerInside ? 0.035 : 0.018);
       centerY += (desiredY - centerY) * (pointerInside ? 0.035 : 0.018);
       burst *= 0.94;
@@ -166,14 +250,15 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
 
       const maxRadius = Math.min(width, height) * (collapsedRef.current ? 0.57 : 0.47);
       const coreRadius = Math.min(width, height) * (0.055 + (energy - 1) * 0.006);
+      const motionEnergy = pointerInside ? 0 : energy;
       context.save();
       context.globalCompositeOperation = "lighter";
       context.lineCap = "round";
 
       particles.forEach((particle, index) => {
         const pull = 1 + Math.max(0, 1 - particle.radius / maxRadius) * 5.6;
-        particle.angle += particle.speed * energy * pull + burst * (0.018 + index % 4 * 0.002);
-        particle.radius -= (0.028 + particle.speed * 2.2) * energy;
+        particle.angle += particle.speed * motionEnergy * pull + burst * (0.018 + index % 4 * 0.002);
+        particle.radius -= (0.028 + particle.speed * 2.2) * motionEnergy;
         if (particle.radius < coreRadius * 1.25) {
           particle.radius = maxRadius * (0.82 + Math.random() * 0.22);
           particle.angle += Math.PI * (0.35 + Math.random());
@@ -205,6 +290,7 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
 
       drawRings(centerX, centerY, time, coreRadius);
       drawCore(centerX, centerY, coreRadius);
+      drawSignalNodes(maxRadius);
       frame = window.requestAnimationFrame(render);
     };
 
@@ -238,8 +324,21 @@ export default function GravitySingularity({ collapsed }: GravitySingularityProp
     >
       <canvas ref={canvasRef} aria-hidden="true" />
       <div className="singularity-reticle" aria-hidden="true"><i /><b /></div>
-      <span className="singularity-label">MOVE TO BEND · CLICK TO PULSE</span>
+      <span className="singularity-label">HOVER TO FREEZE · SELECT A SIGNAL</span>
       <span className="singularity-reading">GRAVITY / <b>{collapsed ? "∞" : "06.24"}</b></span>
+      {selectedSignal && (
+        <aside className="signal-card" role="dialog" aria-label={`${selectedSignal.name} signal data`} onPointerDown={(event) => event.stopPropagation()}>
+          <div className="signal-card-top"><span>{selectedSignal.id} / DISCOVERED</span><button type="button" onClick={() => setSelectedSignal(null)} aria-label="Close signal card">×</button></div>
+          <div className="signal-card-visual" style={{ "--signal-color": selectedSignal.color } as CSSProperties} aria-hidden="true"><i /><b /></div>
+          <div className="signal-card-title"><span>UNKNOWN WORLD</span><h2>{selectedSignal.name}</h2><p>{selectedSignal.status}</p></div>
+          <dl>
+            <div><dt>TEMPERATURE</dt><dd>{selectedSignal.temperature}</dd></div>
+            <div><dt>GRAVITY</dt><dd>{selectedSignal.gravity}</dd></div>
+            <div><dt>ORBITAL PERIOD</dt><dd>{selectedSignal.orbit}</dd></div>
+            <div><dt>ATMOSPHERE</dt><dd>{selectedSignal.atmosphere}</dd></div>
+          </dl>
+        </aside>
+      )}
     </div>
   );
 }
