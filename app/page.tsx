@@ -178,7 +178,8 @@ export default function Home() {
     const track = archiveRef.current;
     if (!track) return;
     const max = track.scrollWidth - track.clientWidth;
-    setArchiveProgress(max > 0 ? track.scrollLeft / max : 0);
+    const progress = max > 0 ? track.scrollLeft / max : 0;
+    setArchiveProgress(progress < .003 ? 0 : progress > .997 ? 1 : progress);
   };
 
   const scrubArchive = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -186,10 +187,18 @@ export default function Home() {
     if (!track) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    track.scrollLeft = ratio * (track.scrollWidth - track.clientWidth);
+    const edgeLockedRatio = ratio < .025 ? 0 : ratio > .975 ? 1 : ratio;
+    track.classList.add("is-dragging");
+    track.scrollLeft = edgeLockedRatio * (track.scrollWidth - track.clientWidth);
     document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
     document.documentElement.style.setProperty("--my", `${event.clientY}px`);
     syncArchiveProgress();
+  };
+
+  const endArchiveScrub = (event: React.PointerEvent<HTMLDivElement>) => {
+    archiveRef.current?.classList.remove("is-dragging");
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    window.requestAnimationFrame(syncArchiveProgress);
   };
 
   const scrollToNext = () => document.querySelector("#portrait")?.scrollIntoView({ behavior: "smooth" });
@@ -399,7 +408,8 @@ export default function Home() {
           aria-label="Archive navigation"
           onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); scrubArchive(event); }}
           onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) scrubArchive(event); }}
-          onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+          onPointerUp={endArchiveScrub}
+          onPointerCancel={endArchiveScrub}
         >
           <div style={{ transform: `translateX(${archiveProgress * 455}%)` }} />
         </div>

@@ -253,7 +253,7 @@ footer { position:absolute; bottom:22px; left:28px; right:28px; display:flex; ju
 .archive { background:#0c0c0b; color:var(--paper); padding:130px 0 140px; overflow:hidden; }
 .archive-head { margin:0 28px 55px; border-top:1px solid #444; padding-top:13px; display:flex; justify-content:space-between; font-size:9px; letter-spacing:.1em; }
 .archive-head p { margin:0; color:#777; }
-.archive-track { display:flex; gap:16px; overflow-x:auto; padding:0 28px 22px; scroll-snap-type:x mandatory; scrollbar-width:none; cursor:grab; user-select:none; touch-action:pan-y; }
+.archive-track { display:flex; gap:16px; overflow-x:auto; padding:0 28px 22px; scroll-padding-inline:28px; scroll-snap-type:x mandatory; scrollbar-width:none; cursor:grab; user-select:none; touch-action:pan-y; overscroll-behavior-inline:contain; }
 .archive-track::-webkit-scrollbar { display:none; }
 .archive-track.is-dragging { cursor:grabbing; scroll-snap-type:none; }
 .archive-track.is-dragging .archive-card { pointer-events:none; }
@@ -320,6 +320,7 @@ footer { position:absolute; bottom:22px; left:28px; right:28px; display:flex; ju
   .archive { padding:95px 0 100px; }
   .archive-head { margin-inline:18px; }
   .archive-track { padding-inline:18px; }
+  .archive-track { scroll-padding-inline:18px; }
   .archive-scrollbar { margin-inline:18px; }
   .archive-enter { margin-right:18px; }
   .archive-card { flex-basis:82vw; }
