@@ -79,7 +79,9 @@ a { text-decoration:none; }
 .contact { min-height:88svh; padding:90px 28px 22px; background:var(--violet); color:white; position:relative; display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
 .contact > p { font-size:10px; letter-spacing:.1em; text-align:center; }
 .contact > a { position:relative; z-index:2; display:flex; align-items:center; justify-content:center; font-size:clamp(55px,13vw,190px); font-weight:900; letter-spacing:-.09em; line-height:1; }
-.contact > a span { font-size:.25em; width:.9em; height:.9em; border:1px solid white; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; line-height:0; padding:0 0 .04em; margin-left:20px; transition:.4s; }
+.contact > a span { position:relative; flex:0 0 auto; font-size:0; width:clamp(46px,4.5vw,70px); height:clamp(46px,4.5vw,70px); border:1px solid white; border-radius:50%; display:block; line-height:0; margin-left:clamp(14px,2vw,28px); transition:.4s; }
+.contact > a span::before { content:""; position:absolute; left:28%; top:50%; width:44%; height:2px; border-radius:2px; background:currentColor; transform:translateY(-50%) rotate(-45deg); }
+.contact > a span::after { content:""; position:absolute; top:27%; right:27%; width:17%; height:17%; border-top:2px solid currentColor; border-right:2px solid currentColor; }
 .contact > a:hover span { background:var(--acid); color:var(--ink); transform:rotate(45deg) scale(1.2); }
 .contact-orbit { position:absolute; width:500px; height:500px; border:1px solid rgba(255,255,255,.3); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); animation:orbitPulse 5s ease-in-out infinite; }
 .contact-orbit span { position:absolute; top:8px; left:36%; font-size:8px; letter-spacing:.15em; }
