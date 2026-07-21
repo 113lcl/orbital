@@ -6,6 +6,7 @@ const projects = [
   { no: "01", title: "NEON / OBJECT", type: "Identity + Digital", year: "2026", hue: "lime" },
   { no: "02", title: "FLUID SIGNAL", type: "Experience + Motion", year: "2026", hue: "violet" },
   { no: "03", title: "AFTERLIGHT", type: "Strategy + Product", year: "2025", hue: "coral" },
+  { no: "04", title: "SONIC / BLOOM", type: "AI + Interactive", year: "2025", hue: "cyan" },
 ];
 
 const services = [
@@ -21,11 +22,17 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [time, setTime] = useState(0);
-  const [labMode, setLabMode] = useState<"attract" | "repel" | "drift">("attract");
+  const [labMode, setLabMode] = useState<"attract" | "repel" | "vortex">("attract");
   const [activeService, setActiveService] = useState(0);
   const [mood, setMood] = useState<"ultraviolet" | "solar" | "infra">("ultraviolet");
+  const [archiveProgress, setArchiveProgress] = useState(0);
   const orbRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const archiveRef = useRef<HTMLDivElement>(null);
+  const labModeRef = useRef(labMode);
+  const archiveDrag = useRef({ active: false, startX: 0, scrollLeft: 0 });
+
+  useEffect(() => { labModeRef.current = labMode; }, [labMode]);
 
   useEffect(() => {
     const intro = window.setTimeout(() => setLoaded(true), 220);
@@ -93,10 +100,18 @@ export default function Home() {
         const dx = pointer.x - px;
         const dy = pointer.y - py;
         const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 35);
-        if (distance < 220 && labMode !== "drift") {
-          const force = (1 - distance / 220) * (labMode === "attract" ? 0.026 : -0.045);
-          particle.vx += (dx / distance) * force;
-          particle.vy += (dy / distance) * force;
+        const activeMode = labModeRef.current;
+        if (distance < 240) {
+          const falloff = 1 - distance / 240;
+          if (activeMode === "vortex") {
+            const spin = falloff * .048;
+            particle.vx += (-dy / distance) * spin + (dx / distance) * .006;
+            particle.vy += (dx / distance) * spin + (dy / distance) * .006;
+          } else {
+            const force = falloff * (activeMode === "attract" ? 0.026 : -0.045);
+            particle.vx += (dx / distance) * force;
+            particle.vy += (dy / distance) * force;
+          }
         }
         particle.vx *= .988; particle.vy *= .988;
         particle.x += particle.vx / Math.max(width, 1);
@@ -131,7 +146,49 @@ export default function Home() {
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerleave", leave);
     };
-  }, [labMode]);
+  }, []);
+
+  const beginArchiveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const track = archiveRef.current;
+    if (!track) return;
+    archiveDrag.current = { active: true, startX: event.clientX, scrollLeft: track.scrollLeft };
+    track.classList.add("is-dragging");
+    track.setPointerCapture(event.pointerId);
+    document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
+    document.documentElement.style.setProperty("--my", `${event.clientY}px`);
+  };
+
+  const moveArchiveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
+    document.documentElement.style.setProperty("--my", `${event.clientY}px`);
+    if (!archiveDrag.current.active || !archiveRef.current) return;
+    archiveRef.current.scrollLeft = archiveDrag.current.scrollLeft - (event.clientX - archiveDrag.current.startX) * 1.35;
+  };
+
+  const endArchiveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    archiveDrag.current.active = false;
+    archiveRef.current?.classList.remove("is-dragging");
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
+  const syncArchiveProgress = () => {
+    const track = archiveRef.current;
+    if (!track) return;
+    const max = track.scrollWidth - track.clientWidth;
+    setArchiveProgress(max > 0 ? track.scrollLeft / max : 0);
+  };
+
+  const scrubArchive = (event: React.PointerEvent<HTMLDivElement>) => {
+    const track = archiveRef.current;
+    if (!track) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    track.scrollLeft = ratio * (track.scrollWidth - track.clientWidth);
+    document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
+    document.documentElement.style.setProperty("--my", `${event.clientY}px`);
+    syncArchiveProgress();
+  };
 
   const scrollToWork = () => document.querySelector("#work")?.scrollIntoView({ behavior: "smooth" });
 
@@ -194,11 +251,11 @@ export default function Home() {
           <span>( 01 — INTERACTION LAB )</span>
           <p>Проведите курсором через поле.<br />Выберите закон цифровой физики.</p>
         </div>
-        <div className="lab-stage">
+        <div className={`lab-stage mode-${labMode}`}>
           <canvas ref={canvasRef} aria-label="Интерактивное поле частиц" />
           <div className="lab-title"><span>TOUCH THE</span><strong>SIGNAL</strong></div>
           <div className="lab-controls" role="group" aria-label="Режим движения частиц">
-            {(["attract", "repel", "drift"] as const).map((mode) => (
+            {(["attract", "repel", "vortex"] as const).map((mode) => (
               <button key={mode} onClick={() => setLabMode(mode)} className={labMode === mode ? "active" : ""}>
                 <i /> {mode.toUpperCase()}
               </button>
@@ -266,7 +323,16 @@ export default function Home() {
 
       <section className="archive scroll-reveal">
         <div className="archive-head"><span>( 05 — EXTENDED ARCHIVE )</span><p>ПЕРЕТАСКИВАЙТЕ →</p></div>
-        <div className="archive-track">
+        <div
+          className="archive-track"
+          ref={archiveRef}
+          onPointerDown={beginArchiveDrag}
+          onPointerMove={moveArchiveDrag}
+          onPointerUp={endArchiveDrag}
+          onPointerCancel={endArchiveDrag}
+          onScroll={syncArchiveProgress}
+          onPointerLeave={(event) => { if (archiveDrag.current.active && !event.currentTarget.hasPointerCapture(event.pointerId)) endArchiveDrag(event); }}
+        >
           {archive.map((item, index) => (
             <article className={`archive-card archive-${index + 1}`} key={item} tabIndex={0}>
               <span>0{index + 4} / {2026 - index}</span>
@@ -275,6 +341,15 @@ export default function Home() {
               <p>EXPERIMENTAL / DIGITAL</p>
             </article>
           ))}
+        </div>
+        <div
+          className="archive-scrollbar"
+          aria-label="Прокрутка архива"
+          onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); scrubArchive(event); }}
+          onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) scrubArchive(event); }}
+          onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+        >
+          <div style={{ transform: `translateX(${archiveProgress * 455}%)` }} />
         </div>
       </section>
 
