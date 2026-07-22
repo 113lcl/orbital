@@ -437,10 +437,9 @@ export default function Home() {
       <section className="wave-index scroll-reveal" id="matter">
         <div className="wave-index-title"><span>( 07 — UNSTABLE MATTER )</span><h2>THREE SYSTEMS.<br /><i>NONE STAY STILL.</i></h2></div>
         <div className="wave-index-list">
-          <Link href="/chromatic-matter" className="wave-index-row matter-row"><span>07.1</span><h3>CHROMATIC MATTER</h3><p>FLUID / GRAVITY</p><i>↗</i></Link>
+          <Link href="/gravity-loom" className="wave-index-row loom-row"><span>07.1</span><h3>GRAVITY LOOM</h3><p>FILAMENT / FIELD</p><i>↗</i></Link>
           <Link href="/time-rift" className="wave-index-row rift-row"><span>07.2</span><h3>TIME RIFT</h3><p>SCROLL / STORY</p><i>↗</i></Link>
           <Link href="/signal-garden" className="wave-index-row garden-row"><span>07.3</span><h3>SIGNAL GARDEN</h3><p>GENERATIVE / GROWTH</p><i>↗</i></Link>
-          <Link href="/liquid-glass" className="wave-index-row glass-row"><span>07.4</span><h3>LIQUID GLASS</h3><p>REFRACTION / DEPTH</p><i>↗</i></Link>
         </div>
       </section>
 
