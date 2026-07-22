@@ -15,7 +15,8 @@ const chapters = [
 
 export default function SecondWaveExperience({ kind }: { kind: WaveKind }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pointer = useRef({ x: .5, y: .5, down: false });
+  const pointer = useRef({ x: .5, y: .5, down: false, vx: 0 });
+  const gardenBurstRef = useRef(0);
   const [phase, setPhase] = useState(0);
   const [planted, setPlanted] = useState(12);
   const [palette, setPalette] = useState(0);
@@ -27,6 +28,8 @@ export default function SecondWaveExperience({ kind }: { kind: WaveKind }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let width = 0, height = 0, frame = 0, tick = 0, tension = 0, tensionVelocity = 0;
+    let wind = 0, windVelocity = 0, gardenCycle = 1, seenGardenBurst = gardenBurstRef.current;
+    const dust: { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string }[] = [];
     const shoots = Array.from({ length: planted }, (_, index) => ({
       x: .04 + Math.abs(Math.sin((index + 1) * 91.345) * 43758.5453 % 1) * .92,
       height: .15 + Math.abs(Math.sin((index + 1) * 37.91) * 1537.27 % 1) * .42,
@@ -80,18 +83,80 @@ export default function SecondWaveExperience({ kind }: { kind: WaveKind }) {
       ctx.fillStyle = "#e8e4d8"; ctx.fillRect(0, 0, width, height);
       ctx.strokeStyle = "rgba(10,10,9,.12)"; ctx.lineWidth = 1;
       for (let y = 0; y < height; y += 28) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
-      const wind = (pointer.current.x - .5) * .15;
+
+      const cursorWind = (pointer.current.x - .5) * .34 + Math.max(-.16, Math.min(.16, pointer.current.vx * 2.4));
+      windVelocity += (cursorWind - wind) * .018;
+      windVelocity *= .94;
+      wind += windVelocity;
+      pointer.current.vx *= .9;
+
+      if (seenGardenBurst !== gardenBurstRef.current) {
+        seenGardenBurst = gardenBurstRef.current;
+        dust.length = 0;
+        shoots.forEach((shoot, index) => {
+          const baseX = shoot.x * width, baseY = height * .9;
+          const petalColor = shoot.hue === 0 ? "#6b39ff" : shoot.hue === 1 ? "#c7ff2f" : "#ff6148";
+          for (let grain = 0; grain < 15; grain++) {
+            const alongStem = grain / 14;
+            const gust = Math.sin(tick * .018 + index * .83) * .025;
+            const bend = (shoot.lean + wind + gust) * height * alongStem * alongStem;
+            dust.push({
+              x: baseX + bend + (Math.random() - .5) * 18,
+              y: baseY - shoot.height * height * alongStem + (Math.random() - .5) * 12,
+              vx: wind * (1.4 + Math.random() * 2.2) + (Math.random() - .5) * .7,
+              vy: -.15 - Math.random() * .85,
+              life: .72 + Math.random() * .28,
+              size: .7 + Math.random() * 2.2,
+              color: grain > 10 ? petalColor : "#171716",
+            });
+          }
+        });
+        gardenCycle = -.22;
+      }
+
+      for (let index = dust.length - 1; index >= 0; index--) {
+        const grain = dust[index];
+        grain.vx += wind * .012; grain.vx *= .992; grain.vy -= .0015;
+        grain.x += grain.vx; grain.y += grain.vy; grain.life -= .0042;
+        if (grain.life <= 0) { dust.splice(index, 1); continue; }
+        ctx.globalAlpha = Math.min(1, grain.life * 1.8);
+        ctx.fillStyle = grain.color;
+        ctx.fillRect(grain.x, grain.y, grain.size, grain.size);
+      }
+      ctx.globalAlpha = 1;
+
+      gardenCycle = Math.min(1, gardenCycle + .0032);
+      const rawGrowth = Math.max(0, gardenCycle);
+      const rebirth = rawGrowth * rawGrowth * (3 - 2 * rawGrowth);
       shoots.forEach((shoot, index) => {
         const baseX = shoot.x * width, baseY = height * .9;
-        const growth = Math.min(1, tick / 80 + index * .06);
+        const initialGrowth = Math.min(1, tick / 90 + index * .05);
+        const growth = Math.min(initialGrowth, Math.max(0, rebirth * 1.24 - index * .02));
         const topY = baseY - shoot.height * height * growth;
-        const topX = baseX + (shoot.lean + wind) * height * growth;
+        const gust = Math.sin(tick * .018 + index * .83) * .022 + Math.sin(tick * .007 + shoot.x * 9) * .014;
+        const bend = (shoot.lean + wind + gust) * height * growth;
+        const topX = baseX + bend;
         ctx.beginPath(); ctx.strokeStyle = "#121211"; ctx.lineWidth = index % 4 === 0 ? 2 : 1;
-        ctx.moveTo(baseX, baseY); ctx.quadraticCurveTo(baseX - wind * 180, (baseY + topY) / 2, topX, topY); ctx.stroke();
+        ctx.moveTo(baseX, baseY);
+        ctx.bezierCurveTo(baseX - wind * height * .04, baseY - shoot.height * height * growth * .28, baseX + bend * .42, baseY - shoot.height * height * growth * .68, topX, topY);
+        ctx.stroke();
+
+        if (growth > .32) {
+          for (let leaf = 1; leaf <= 2; leaf++) {
+            const stemT = .32 + leaf * .2;
+            const leafX = baseX + bend * stemT * stemT;
+            const leafY = baseY - shoot.height * height * growth * stemT;
+            const side = (leaf + index) % 2 ? 1 : -1;
+            ctx.save(); ctx.translate(leafX, leafY); ctx.rotate(side * (.65 + wind * 1.8)); ctx.scale(1, .38);
+            ctx.beginPath(); ctx.fillStyle = "rgba(18,18,17,.82)"; ctx.ellipse(side * 8 * growth, 0, 10 * growth, 4.5 * growth, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+          }
+        }
+
         const petalColor = shoot.hue === 0 ? "#6b39ff" : shoot.hue === 1 ? "#c7ff2f" : "#ff6148";
+        const headTilt = wind * 1.25 + gust * 2.4;
         for (let p = 0; p < shoot.petals; p++) {
-          const angle = p / shoot.petals * Math.PI * 2 + tick * .002 * (index % 2 ? 1 : -1);
-          ctx.save(); ctx.translate(topX, topY); ctx.rotate(angle); ctx.scale(1, .45);
+          const angle = p / shoot.petals * Math.PI * 2 + Math.sin(tick * .012 + index) * .035;
+          ctx.save(); ctx.translate(topX, topY); ctx.rotate(headTilt + angle); ctx.scale(1, .42 + Math.sin(tick * .015 + p) * .035);
           ctx.beginPath(); ctx.fillStyle = petalColor; ctx.arc(16 * growth, 0, (7 + index % 4) * growth, 0, Math.PI * 2); ctx.fill(); ctx.restore();
         }
         ctx.beginPath(); ctx.fillStyle = "#111"; ctx.arc(topX, topY, 3.2 * growth, 0, Math.PI * 2); ctx.fill();
@@ -116,13 +181,15 @@ export default function SecondWaveExperience({ kind }: { kind: WaveKind }) {
   }, [kind, palette, planted]);
 
   const move = (event: React.PointerEvent<HTMLElement>) => {
-    pointer.current.x = event.clientX / innerWidth; pointer.current.y = event.clientY / innerHeight;
+    const nextX = event.clientX / innerWidth;
+    pointer.current.vx += (nextX - pointer.current.x) * .7;
+    pointer.current.x = nextX; pointer.current.y = event.clientY / innerHeight;
     event.currentTarget.style.setProperty("--mx", `${event.clientX}px`);
     event.currentTarget.style.setProperty("--my", `${event.clientY}px`);
   };
   const down = (event: React.PointerEvent<HTMLElement>) => {
     pointer.current.down = true; move(event);
-    if (kind === "signal-garden") setPlanted((value) => value + 1);
+    if (kind === "signal-garden") gardenBurstRef.current += 1;
   };
   const wheel = (event: React.WheelEvent<HTMLElement>) => {
     if (kind !== "time-rift") return;
@@ -153,8 +220,8 @@ export default function SecondWaveExperience({ kind }: { kind: WaveKind }) {
         <div className="rift-nav">{chapters.map((chapter, index) => <button key={chapter[1]} className={phase === index ? "active" : ""} onClick={() => setPhase(index)}>{chapter[0]}</button>)}</div>
       </>}
       {kind === "signal-garden" && <>
-        <div className="garden-copy"><span>GENERATIVE SPECIES / {String(planted).padStart(3, "0")}</span><h1>SIGNAL<br />GARDEN</h1><p>Move to change the wind. Click anywhere to grow a new transmission.</p></div>
-        <button className="wave-button garden-reset" onPointerDown={(e) => e.stopPropagation()} onClick={() => setPlanted(12)}>RESET GROWTH ↗</button>
+        <div className="garden-copy"><span>GENERATIVE SPECIES / {String(planted).padStart(3, "0")}</span><h1>SIGNAL<br />GARDEN</h1><p>Move to steer the wind. Click anywhere to dissolve the field and watch a new garden emerge.</p></div>
+        <button className="wave-button garden-reset" onPointerDown={(e) => e.stopPropagation()} onClick={() => { gardenBurstRef.current += 1; setPlanted(12); }}>DISSOLVE FIELD ↗</button>
       </>}
       <div className="wave-status"><span>ORBITAL EXPERIMENT / 2026</span><span>POINTER INPUT / ACTIVE</span><b>LIVE ●</b></div>
     </main>
