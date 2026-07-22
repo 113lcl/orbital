@@ -78,14 +78,14 @@ a { text-decoration:none; }
 .manifesto p { margin:0; font-size:clamp(38px,7.1vw,110px); letter-spacing:-.07em; line-height:.92; font-weight:800; }
 .manifesto p span { font-family:Georgia, serif; font-weight:400; font-style:italic; }
 .manifesto-note { position:absolute; bottom:40px; left:28px; font-size:10px; line-height:1.4; }
-.contact { min-height:88svh; padding:90px 28px 22px; background:var(--violet); color:white; position:relative; display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
+.contact { min-height:88svh; padding:90px 28px 22px; background:var(--contact-bg); color:var(--contact-ink); position:relative; display:flex; flex-direction:column; justify-content:center; overflow:hidden; transition:background .7s cubic-bezier(.16,1,.3,1),color .45s; }
 .contact > p { font-size:10px; letter-spacing:.1em; text-align:center; }
 .contact > a { position:relative; z-index:2; display:flex; align-items:center; justify-content:center; font-size:clamp(55px,13vw,190px); font-weight:900; letter-spacing:-.09em; line-height:1; }
-.contact > a span { position:relative; flex:0 0 auto; font-size:0; width:clamp(46px,4.5vw,70px); height:clamp(46px,4.5vw,70px); border:1px solid white; border-radius:50%; display:block; line-height:0; margin-left:clamp(14px,2vw,28px); transition:.4s; }
+.contact > a span { position:relative; flex:0 0 auto; font-size:0; width:clamp(46px,4.5vw,70px); height:clamp(46px,4.5vw,70px); border:1px solid var(--contact-arrow); border-radius:50%; display:block; line-height:0; margin-left:clamp(14px,2vw,28px); color:var(--contact-arrow-ink); background:var(--contact-arrow); transition:.4s; }
 .contact > a span::before { content:""; position:absolute; left:28%; top:50%; width:44%; height:2px; border-radius:2px; background:currentColor; transform:translateY(-50%) rotate(-45deg); }
 .contact > a span::after { content:""; position:absolute; top:27%; right:27%; width:17%; height:17%; border-top:2px solid currentColor; border-right:2px solid currentColor; }
-.contact > a:hover span { background:var(--acid); color:var(--ink); transform:rotate(45deg) scale(1.2); }
-.contact-orbit { position:absolute; width:500px; height:500px; border:1px solid rgba(255,255,255,.3); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); animation:orbitPulse 5s ease-in-out infinite; }
+.contact > a:hover span { filter:brightness(1.08); transform:rotate(45deg) scale(1.2); }
+.contact-orbit { position:absolute; width:500px; height:500px; border:1px solid color-mix(in srgb,currentColor 30%,transparent); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); animation:orbitPulse 5s ease-in-out infinite; }
 .contact-orbit span { position:absolute; top:8px; left:36%; font-size:8px; letter-spacing:.15em; }
 footer { position:absolute; bottom:22px; left:28px; right:28px; display:flex; justify-content:space-between; font-size:9px; letter-spacing:.08em; }
 @keyframes morph { 0%,100%{border-radius:48% 52% 62% 38% / 43% 38% 62% 57%} 50%{border-radius:68% 32% 42% 58% / 35% 58% 42% 65%} }
@@ -161,9 +161,9 @@ footer { position:absolute; bottom:22px; left:28px; right:28px; display:flex; ju
 }
 
 /* Extended interactive experience */
-.site { --active:var(--violet); --active-soft:#a48eff; }
-.site.mood-solar { --active:#d7ff38; --active-soft:#f0ff9e; }
-.site.mood-infra { --active:#ff5538; --active-soft:#ff9a86; }
+.site { --active:var(--violet); --active-soft:#a48eff; --contact-bg:#6944ff; --contact-ink:#fff; --contact-arrow:#c7ff2f; --contact-arrow-ink:#11110e; }
+.site.mood-solar { --active:#d7ff38; --active-soft:#f0ff9e; --contact-bg:#d7ff38; --contact-ink:#11110e; --contact-arrow:#6944ff; --contact-arrow-ink:#fff; }
+.site.mood-infra { --active:#ff5538; --active-soft:#ff9a86; --contact-bg:#ff5538; --contact-ink:#fff; --contact-arrow:#11110e; --contact-arrow-ink:#fff; }
 .scroll-progress { position:fixed; z-index:120; left:0; top:0; height:3px; width:var(--scroll,0%); background:var(--acid); box-shadow:0 0 14px var(--acid); pointer-events:none; }
 .scroll-reveal { opacity:.12; transform:translateY(70px); transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1); }
 .scroll-reveal.in-view { opacity:1; transform:translateY(0); }

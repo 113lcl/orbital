@@ -248,10 +248,10 @@ export default function Home() {
           <a href="#work" onClick={() => setMenuOpen(false)}><span>02</span> Selected work</a>
           <a href="#services" onClick={() => setMenuOpen(false)}><span>03</span> Capabilities</a>
           <a href="#about" onClick={() => setMenuOpen(false)}><span>04</span> Our signal</a>
-          <a href="#archive" onClick={() => setMenuOpen(false)}><span>05</span> Archive</a>
           <a href="#experiments" onClick={() => setMenuOpen(false)}><span>06</span> New experiments</a>
           <a href="#matter" onClick={() => setMenuOpen(false)}><span>07</span> Unstable matter</a>
           <a href="#frequency" onClick={() => setMenuOpen(false)}><span>08</span> Tune frequency</a>
+          <a href="#archive" onClick={() => setMenuOpen(false)}><span>05</span> Archive</a>
           <a href="#contact" onClick={() => setMenuOpen(false)}><span>09</span> Contact</a>
         </nav>
         <p>WARSAW · PARIS · EVERYWHERE<br />AVAILABLE FOR SELECTED MISSIONS</p>
@@ -388,6 +388,41 @@ export default function Home() {
         <div className="manifesto-note">Every pixel needs<br />a reason to move.</div>
       </section>
 
+      <section className="future-index scroll-reveal" id="experiments">
+        <div className="future-index-head"><span>( 06 — OPEN EXPERIMENTS )</span><p>THREE NEW INSTRUMENTS<br />FOR CURIOUS HUMANS.</p></div>
+        <div className="future-index-grid">
+          <a href="/observatory" className="future-index-card future-card-space">
+            <span>06.1 / DEEP FIELD</span><div className="future-card-art"><i /><b /></div><h2>OBSERVATORY</h2><p>MOVE THE LENS · LOCK A STAR ↗</p>
+          </a>
+          <a href="/type-engine" className="future-index-card future-card-type">
+            <span>06.2 / KINETIC LETTERS</span><div className="future-card-art"><strong>Aa</strong></div><h2>TYPE ENGINE</h2><p>STRETCH LANGUAGE · BREAK THE GRID ↗</p>
+          </a>
+          <a href="/echo-chamber" className="future-index-card future-card-echo">
+            <span>06.3 / SIGNAL MEMORY</span><div className="future-card-art"><i /><i /><i /></div><h2>ECHO CHAMBER</h2><p>DRAW A WAVE · RELEASE AN ECHO ↗</p>
+          </a>
+        </div>
+      </section>
+
+      <section className="wave-index scroll-reveal" id="matter">
+        <div className="wave-index-title"><span>( 07 — UNSTABLE MATTER )</span><h2>THREE SYSTEMS.<br /><i>NONE STAY STILL.</i></h2></div>
+        <div className="wave-index-list">
+          <a href="/gravity-loom" className="wave-index-row loom-row"><span>07.1</span><h3>GRAVITY LOOM</h3><p>FILAMENT / FIELD</p><i>↗</i></a>
+          <a href="/time-rift" className="wave-index-row rift-row"><span>07.2</span><h3>TIME RIFT</h3><p>SCROLL / STORY</p><i>↗</i></a>
+          <a href="/signal-garden" className="wave-index-row garden-row"><span>07.3</span><h3>SIGNAL GARDEN</h3><p>GENERATIVE / GROWTH</p><i>↗</i></a>
+        </div>
+      </section>
+
+      <section className="mood-lab scroll-reveal" id="frequency">
+        <div><span>( 08 — TUNE THE FREQUENCY )</span><h2>CHOOSE YOUR<br /><em>GRAVITY.</em></h2></div>
+        <div className="mood-switcher" role="group" aria-label="Site color mode">
+          {(["ultraviolet", "solar", "infra"] as const).map((item, index) => (
+            <button key={item} className={mood === item ? "active" : ""} onClick={() => setMood(item)}>
+              <span>0{index + 1}</span><strong>{item.toUpperCase()}</strong><i />
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="archive scroll-reveal" id="archive">
         <div className="archive-head"><span>( 05 — EXTENDED ARCHIVE )</span><p>DRAG TO NAVIGATE →</p></div>
         <div
@@ -422,41 +457,6 @@ export default function Home() {
           <div style={{ transform: `translateX(${archiveProgress * 455}%)` }} />
         </div>
         <a className="archive-enter" href="/archive">ENTER ARCHIVE TRANSMISSION ↗</a>
-      </section>
-
-      <section className="future-index scroll-reveal" id="experiments">
-        <div className="future-index-head"><span>( 06 — OPEN EXPERIMENTS )</span><p>THREE NEW INSTRUMENTS<br />FOR CURIOUS HUMANS.</p></div>
-        <div className="future-index-grid">
-          <a href="/observatory" className="future-index-card future-card-space">
-            <span>06.1 / DEEP FIELD</span><div className="future-card-art"><i /><b /></div><h2>OBSERVATORY</h2><p>MOVE THE LENS · LOCK A STAR ↗</p>
-          </a>
-          <a href="/type-engine" className="future-index-card future-card-type">
-            <span>06.2 / KINETIC LETTERS</span><div className="future-card-art"><strong>Aa</strong></div><h2>TYPE ENGINE</h2><p>STRETCH LANGUAGE · BREAK THE GRID ↗</p>
-          </a>
-          <a href="/echo-chamber" className="future-index-card future-card-echo">
-            <span>06.3 / SIGNAL MEMORY</span><div className="future-card-art"><i /><i /><i /></div><h2>ECHO CHAMBER</h2><p>DRAW A WAVE · RELEASE AN ECHO ↗</p>
-          </a>
-        </div>
-      </section>
-
-      <section className="wave-index scroll-reveal" id="matter">
-        <div className="wave-index-title"><span>( 07 — UNSTABLE MATTER )</span><h2>THREE SYSTEMS.<br /><i>NONE STAY STILL.</i></h2></div>
-        <div className="wave-index-list">
-          <a href="/gravity-loom" className="wave-index-row loom-row"><span>07.1</span><h3>GRAVITY LOOM</h3><p>FILAMENT / FIELD</p><i>↗</i></a>
-          <a href="/time-rift" className="wave-index-row rift-row"><span>07.2</span><h3>TIME RIFT</h3><p>SCROLL / STORY</p><i>↗</i></a>
-          <a href="/signal-garden" className="wave-index-row garden-row"><span>07.3</span><h3>SIGNAL GARDEN</h3><p>GENERATIVE / GROWTH</p><i>↗</i></a>
-        </div>
-      </section>
-
-      <section className="mood-lab scroll-reveal" id="frequency">
-        <div><span>( 08 — TUNE THE FREQUENCY )</span><h2>CHOOSE YOUR<br /><em>GRAVITY.</em></h2></div>
-        <div className="mood-switcher" role="group" aria-label="Site color mode">
-          {(["ultraviolet", "solar", "infra"] as const).map((item, index) => (
-            <button key={item} className={mood === item ? "active" : ""} onClick={() => setMood(item)}>
-              <span>0{index + 1}</span><strong>{item.toUpperCase()}</strong><i />
-            </button>
-          ))}
-        </div>
       </section>
 
       <section className="contact" id="contact">
