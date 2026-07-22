@@ -8,7 +8,7 @@ type ExperienceKind = "observatory" | "type-engine" | "echo-chamber";
 const copy = {
   observatory: {
     index: "06.1", label: "DEEP FIELD OBSERVATORY", eyebrow: "LIVE CELESTIAL INSTRUMENT",
-    title: "LOOK\nBEYOND", note: "Move the lens through deep space. Click to ignite a gravity lens and bend nearby starlight.", action: "IGNITE GRAVITY LENS",
+    title: "LOOK\nBEYOND", note: "Move the lens through deep space. Click to lock an unknown object.", action: "LOCK TARGET",
   },
   "type-engine": {
     index: "06.2", label: "KINETIC TYPE ENGINE", eyebrow: "VARIABLE LETTER LABORATORY",
@@ -52,8 +52,6 @@ export default function FutureExperience({ kind }: { kind: ExperienceKind }) {
     const renderObservatory = () => {
       context.fillStyle = "#050507"; context.fillRect(0, 0, width, height);
       const pointer = pointerRef.current;
-      const lensX = pointer.x * width, lensY = pointer.y * height;
-      const lensPower = pointer.pulse;
       stars.forEach((star, index) => {
         star.z -= .0012 * star.speed;
         if (star.z <= .04) star.z = 1;
@@ -61,35 +59,13 @@ export default function FutureExperience({ kind }: { kind: ExperienceKind }) {
         const drift = time * .00008 * (index % 2 ? 1 : -1);
         const sx = (.5 + (star.x - .5) * depth * .72 + Math.sin(drift + index) * .008) * width;
         const sy = (.5 + (star.y - .5) * depth * .72 + Math.cos(drift + index) * .008) * height;
-        const dx = lensX - sx, dy = lensY - sy;
-        const distance = Math.max(1, Math.hypot(dx, dy));
+        const distance = Math.hypot(sx - pointer.x * width, sy - pointer.y * height);
         const focused = pointer.active && distance < 115;
-        const gravity = lensPower * Math.max(0, 1 - distance / 360) ** 2;
-        const orbit = Math.sin(time * .05 + index) * gravity;
-        const renderX = sx + dx / distance * gravity * 72 - dy / distance * orbit * 38;
-        const renderY = sy + dy / distance * gravity * 72 + dx / distance * orbit * 38;
-        if (gravity > .025) {
-          context.beginPath(); context.moveTo(sx, sy); context.lineTo(renderX, renderY);
-          context.strokeStyle = `rgba(139,108,255,${gravity * .42})`; context.lineWidth = .7; context.stroke();
-        }
         context.beginPath();
         context.fillStyle = focused ? "#c7ff2f" : index % 9 === 0 ? "#8b6cff" : `rgba(240,239,231,${Math.min(.9, .12 + (1 - star.z) * .8)})`;
-        context.arc(renderX, renderY, star.size * depth * (focused ? 1.8 : .55) * (1 + gravity), 0, Math.PI * 2); context.fill();
+        context.arc(sx, sy, star.size * depth * (focused ? 1.8 : .55), 0, Math.PI * 2); context.fill();
       });
-      if (lensPower > .01) {
-        const halo = context.createRadialGradient(lensX, lensY, 2, lensX, lensY, 150 + lensPower * 90);
-        halo.addColorStop(0, `rgba(3,3,6,${Math.min(.96, .58 + lensPower * .24)})`);
-        halo.addColorStop(.26, `rgba(105,68,255,${lensPower * .18})`);
-        halo.addColorStop(.62, `rgba(199,255,47,${lensPower * .055})`);
-        halo.addColorStop(1, "rgba(0,0,0,0)");
-        context.fillStyle = halo; context.fillRect(lensX - 260, lensY - 260, 520, 520);
-        context.beginPath(); context.strokeStyle = `rgba(199,255,47,${lensPower * .7})`; context.lineWidth = 1.4;
-        context.arc(lensX, lensY, 34 + (1 - Math.min(1, lensPower)) * 210, 0, Math.PI * 2); context.stroke();
-        context.beginPath(); context.strokeStyle = `rgba(139,108,255,${lensPower * .5})`; context.setLineDash([2, 8]);
-        context.ellipse(lensX, lensY, 58 + lensPower * 35, 20 + lensPower * 12, time * .012, 0, Math.PI * 2); context.stroke(); context.setLineDash([]);
-        pointer.pulse *= .982;
-      }
-      const x = lensX, y = lensY;
+      const x = pointer.x * width, y = pointer.y * height;
       context.strokeStyle = "rgba(199,255,47,.6)"; context.lineWidth = 1;
       [48, 82, 116].forEach((radius, index) => { context.beginPath(); context.setLineDash(index === 1 ? [3, 7] : []); context.arc(x, y, radius + Math.sin(time * .02 + index) * 4, 0, Math.PI * 2); context.stroke(); });
       context.setLineDash([]); context.beginPath(); context.moveTo(x - 140, y); context.lineTo(x + 140, y); context.moveTo(x, y - 140); context.lineTo(x, y + 140); context.stroke();
@@ -160,7 +136,7 @@ export default function FutureExperience({ kind }: { kind: ExperienceKind }) {
   };
 
   const activate = () => {
-    pointerRef.current.pulse = kind === "observatory" ? 1.45 : 1;
+    pointerRef.current.pulse = 1;
     setCount((value) => value + 1);
     if (kind === "type-engine") setVariant((value) => value + 1);
   };
