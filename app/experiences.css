@@ -161,7 +161,7 @@ body:has(.menu-panel.is-open) .sound-dock { opacity:0; pointer-events:none; tran
 @media (prefers-reduced-motion:reduce) { .artifact-nebula,.gravity-singularity::after,.singularity-reticle i,.singularity-reticle b,.archive-sculpture,.archive-sculpture i,.archive-sculpture b,.archive-sculpture em,.archive-frequency i,.world-sonic-bloom.variant-2 .world-shape { animation:none!important; } }
 
 /* 06 / Future instruments */
-.future-world { --future-x:50%; --future-y:50%; --type-stretch:1; --type-skew:0deg; --type-pull-x:0vw; --type-pull-y:0vh; position:relative; min-height:100svh; overflow:hidden; background:#050507; color:#f0efe7; cursor:crosshair; isolation:isolate; }
+.future-world { --future-x:50%; --future-y:50%; --type-stretch:1; --type-skew:0deg; position:relative; min-height:100svh; overflow:hidden; background:#050507; color:#f0efe7; cursor:crosshair; isolation:isolate; }
 .future-world > canvas { position:absolute; inset:0; width:100%; height:100%; }
 .future-grid { position:absolute; z-index:1; inset:0; opacity:.17; pointer-events:none; background-image:linear-gradient(rgba(240,239,231,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(240,239,231,.14) 1px,transparent 1px); background-size:6.25vw 6.25vw; mask-image:radial-gradient(circle at var(--future-x) var(--future-y),#000,transparent 62%); }
 .future-copy { position:absolute; z-index:4; left:4vw; top:18vh; pointer-events:none; }
@@ -181,7 +181,7 @@ body:has(.menu-panel.is-open) .sound-dock { opacity:0; pointer-events:none; tran
 .future-type-engine .future-grid { opacity:.1; }
 .future-type-engine .future-copy { z-index:5; top:15vh; mix-blend-mode:multiply; }
 .future-type-engine .future-copy h1 { color:#582dff; font-size:clamp(78px,15vw,236px); }
-.future-type-engine .future-copy h1 i { transform-origin:center; transform:translate3d(var(--type-pull-x),var(--type-pull-y),0) scaleX(var(--type-stretch)) skewY(var(--type-skew)); }
+.future-type-engine .future-copy h1 i { transform:scaleX(var(--type-stretch)) skewY(var(--type-skew)); }
 .future-type-engine .future-copy p,.future-type-engine .future-readout { color:rgba(10,10,9,.62); }
 .future-type-engine .future-readout b { color:#592fff; }
 .future-type-engine .future-action { color:#0b0b0a; background:rgba(233,230,220,.72); border-color:rgba(10,10,9,.4); }

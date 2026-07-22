@@ -126,10 +126,8 @@ export default function FutureExperience({ kind }: { kind: ExperienceKind }) {
     pointerRef.current.x = x; pointerRef.current.y = y; pointerRef.current.active = true;
     worldRef.current?.style.setProperty("--future-x", `${x * 100}%`);
     worldRef.current?.style.setProperty("--future-y", `${y * 100}%`);
-    worldRef.current?.style.setProperty("--type-stretch", `${1 + Math.abs(x - .5) * .22}`);
-    worldRef.current?.style.setProperty("--type-skew", `${(y - .5) * 8}deg`);
-    worldRef.current?.style.setProperty("--type-pull-x", `${(x - .5) * 3}vw`);
-    worldRef.current?.style.setProperty("--type-pull-y", `${(y - .5) * 4}vh`);
+    worldRef.current?.style.setProperty("--type-stretch", `${.72 + x * .58}`);
+    worldRef.current?.style.setProperty("--type-skew", `${(y - .5) * -14}deg`);
     if (readoutRef.current) readoutRef.current.textContent = `X ${Math.round(x * 999).toString().padStart(3, "0")} · Y ${Math.round(y * 999).toString().padStart(3, "0")}`;
   };
 
